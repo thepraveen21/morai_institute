@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.routes';
 import instituteRoutes from './routes/institute.routes';
 import classRoutes from './routes/class.routes';
 import studentRoutes from './routes/student.routes';
+import feeRoutes from './routes/fee.routes';
 
 dotenv.config();
 
@@ -17,10 +18,11 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 
-// institute and class routes
+
 app.use('/api/institutes', instituteRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/fees', feeRoutes);
 
 // Health check
 app.get('/', (req, res) => {
