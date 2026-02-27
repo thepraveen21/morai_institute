@@ -10,6 +10,7 @@ import attendanceRoutes from './routes/attendance.routes';
 import announcementRoutes from './routes/announcement.routes';
 import reportRoutes from './routes/report.routes';
 import teacherRoutes from './routes/teacher.routes';
+import portalRoutes from './routes/portal.routes';
 
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/portal', portalRoutes);
 
 
 // Health check
