@@ -1,17 +1,17 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db';
+import AppError from '../utils/AppError';
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password, role, name } = req.body;
 
   try {
     // Check if user exists
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
-      res.status(400).json({ success: false, message: 'Email already registered' });
-      return;
+       throw new AppError('Email already registered', 400);
     }
 
     // Hash password
@@ -38,12 +38,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       data: { user, token }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
 
   try {
@@ -51,14 +50,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = result.rows[0];
 
     if (!user) {
-      res.status(401).json({ success: false, message: 'Invalid email or password' });
-      return;
+      throw new AppError('Invalid email or password', 401);
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      res.status(401).json({ success: false, message: 'Invalid email or password' });
-      return;
+      throw new AppError('Invalid email or password', 401);
     }
 
     const token = jwt.sign(
@@ -76,12 +73,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
-export const getMe = async (req: Request, res: Response): Promise<void> => {
+export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const result = await pool.query(
       'SELECT id, email, role, name, created_at FROM users WHERE id = $1',
@@ -89,6 +85,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
