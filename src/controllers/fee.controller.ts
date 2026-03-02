@@ -1,36 +1,30 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
 import pool from '../config/db';
+import AppError from '../utils/AppError'; // CHANGED: Added AppError import
 
-// Create Fee Record
-export const createFee = async (req: Request, res: Response): Promise<void> => {
+export const createFee = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { student_id, class_id, month, year, amount } = req.body;
 
   try {
     if (!student_id || !class_id || !month || !year || !amount) {
-      res.status(400).json({
-        success: false,
-        message: 'student_id, class_id, month, year and amount are required'
-      });
-      return;
+      throw new AppError('student_id, class_id, month, year and amount are required', 400); // CHANGED: throw AppError
     }
 
-    // Check student is enrolled in this class
     const enrollment = await pool.query(
       'SELECT id FROM enrollments WHERE student_id = $1 AND class_id = $2',
       [student_id, class_id]
     );
     if (enrollment.rows.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: 'Student is not enrolled in this class'
-      });
-      return;
+      throw new AppError('Student is not enrolled in this class', 400); // CHANGED: throw AppError
     }
 
     const result = await pool.query(
       `INSERT INTO fees (student_id, class_id, month, year, amount)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [student_id, class_id, month, year, amount]
     );
 
@@ -39,21 +33,16 @@ export const createFee = async (req: Request, res: Response): Promise<void> => {
       message: 'Fee record created successfully',
       data: result.rows[0]
     });
-  } catch (error: any) {
-    if (error.code === '23505') {
-      res.status(400).json({
-        success: false,
-        message: 'Fee record already exists for this student, class and month'
-      });
-      return;
-    }
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Get All Fees (with filters)
-export const getFees = async (req: Request, res: Response): Promise<void> => {
+export const getFees = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { student_id, class_id, month, year, status } = req.query;
 
   try {
@@ -70,44 +59,26 @@ export const getFees = async (req: Request, res: Response): Promise<void> => {
     const params: any[] = [];
     let count = 1;
 
-    if (student_id) {
-      query += ` AND f.student_id = $${count++}`;
-      params.push(student_id);
-    }
-    if (class_id) {
-      query += ` AND f.class_id = $${count++}`;
-      params.push(class_id);
-    }
-    if (month) {
-      query += ` AND f.month = $${count++}`;
-      params.push(month);
-    }
-    if (year) {
-      query += ` AND f.year = $${count++}`;
-      params.push(year);
-    }
-    if (status) {
-      query += ` AND f.status = $${count++}`;
-      params.push(status);
-    }
+    if (student_id) { query += ` AND f.student_id = $${count++}`; params.push(student_id); }
+    if (class_id)   { query += ` AND f.class_id = $${count++}`;   params.push(class_id); }
+    if (month)      { query += ` AND f.month = $${count++}`;       params.push(month); }
+    if (year)       { query += ` AND f.year = $${count++}`;        params.push(year); }
+    if (status)     { query += ` AND f.status = $${count++}`;      params.push(status); }
 
     query += ' ORDER BY f.year DESC, f.month DESC';
 
     const result = await pool.query(query, params);
-
-    res.json({
-      success: true,
-      count: result.rows.length,
-      data: result.rows
-    });
+    res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Get Single Fee
-export const getFeeById = async (req: Request, res: Response): Promise<void> => {
+export const getFeeById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -124,26 +95,26 @@ export const getFeeById = async (req: Request, res: Response): Promise<void> => 
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Fee record not found' });
-      return;
+      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
     }
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Update Fee Status (Mark Paid / Partial)
-export const updateFeeStatus = async (req: Request, res: Response): Promise<void> => {
+export const updateFeeStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
   const { status, amount, notes } = req.body;
 
   try {
     if (!status) {
-      res.status(400).json({ success: false, message: 'status is required' });
-      return;
+      throw new AppError('status is required', 400); // CHANGED: throw AppError
     }
 
     const paid_at = status === 'paid' ? new Date() : null;
@@ -160,8 +131,7 @@ export const updateFeeStatus = async (req: Request, res: Response): Promise<void
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Fee record not found' });
-      return;
+      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
     }
 
     res.json({
@@ -170,30 +140,30 @@ export const updateFeeStatus = async (req: Request, res: Response): Promise<void
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Upload Payment Proof URL
-export const uploadProof = async (req: Request, res: Response): Promise<void> => {
+export const uploadProof = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
   const { proof_url } = req.body;
 
   try {
     if (!proof_url) {
-      res.status(400).json({ success: false, message: 'proof_url is required' });
-      return;
+      throw new AppError('proof_url is required', 400); // CHANGED: throw AppError
     }
 
     const result = await pool.query(
-      `UPDATE fees SET proof_url = $1 WHERE id = $2 RETURNING *`,
+      'UPDATE fees SET proof_url = $1 WHERE id = $2 RETURNING *',
       [proof_url, id]
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Fee record not found' });
-      return;
+      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
     }
 
     res.json({
@@ -202,27 +172,23 @@ export const uploadProof = async (req: Request, res: Response): Promise<void> =>
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Generate Receipt
-export const getReceipt = async (req: Request, res: Response): Promise<void> => {
+export const getReceipt = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
 
   try {
     const result = await pool.query(
       `SELECT f.*,
-              s.name as student_name,
-              s.grade,
-              s.parent_name,
-              s.parent_contact,
-              c.name as class_name,
-              c.subject,
-              i.name as institute_name,
-              i.address as institute_address,
-              i.contact as institute_contact
+              s.name as student_name, s.grade, s.parent_name, s.parent_contact,
+              c.name as class_name, c.subject,
+              i.name as institute_name, i.address as institute_address, i.contact as institute_contact
        FROM fees f
        LEFT JOIN students s ON f.student_id = s.id
        LEFT JOIN classes c ON f.class_id = c.id
@@ -232,72 +198,42 @@ export const getReceipt = async (req: Request, res: Response): Promise<void> => 
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Fee record not found' });
-      return;
+      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
     }
 
     const fee = result.rows[0];
-
-    // Build receipt object
     const receipt = {
       receipt_number: `RCPT-${fee.id.substring(0, 8).toUpperCase()}`,
-      institute: {
-        name: fee.institute_name,
-        address: fee.institute_address,
-        contact: fee.institute_contact
-      },
-      student: {
-        name: fee.student_name,
-        grade: fee.grade,
-        parent_name: fee.parent_name,
-        parent_contact: fee.parent_contact
-      },
-      class: {
-        name: fee.class_name,
-        subject: fee.subject
-      },
-      payment: {
-        month: fee.month,
-        year: fee.year,
-        amount: fee.amount,
-        status: fee.status,
-        paid_at: fee.paid_at,
-        notes: fee.notes
-      },
+      institute: { name: fee.institute_name, address: fee.institute_address, contact: fee.institute_contact },
+      student: { name: fee.student_name, grade: fee.grade, parent_name: fee.parent_name, parent_contact: fee.parent_contact },
+      class: { name: fee.class_name, subject: fee.subject },
+      payment: { month: fee.month, year: fee.year, amount: fee.amount, status: fee.status, paid_at: fee.paid_at, notes: fee.notes },
       generated_at: new Date()
     };
 
     res.json({ success: true, data: receipt });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Get Unpaid Fee Summary by Class
-export const getUnpaidSummary = async (req: Request, res: Response): Promise<void> => {
+export const getUnpaidSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { class_id, month, year } = req.query;
 
   try {
     if (!class_id || !month || !year) {
-      res.status(400).json({
-        success: false,
-        message: 'class_id, month and year are required'
-      });
-      return;
+      throw new AppError('class_id, month and year are required', 400); // CHANGED: throw AppError
     }
 
     const result = await pool.query(
-      `SELECT f.*,
-              s.name as student_name,
-              s.parent_contact,
-              s.parent_name
+      `SELECT f.*, s.name as student_name, s.parent_contact, s.parent_name
        FROM fees f
        LEFT JOIN students s ON f.student_id = s.id
-       WHERE f.class_id = $1
-         AND f.month = $2
-         AND f.year = $3
-         AND f.status != 'paid'
+       WHERE f.class_id = $1 AND f.month = $2 AND f.year = $3 AND f.status != 'paid'
        ORDER BY s.name ASC`,
       [class_id, month, year]
     );
@@ -309,7 +245,6 @@ export const getUnpaidSummary = async (req: Request, res: Response): Promise<voi
       data: result.rows
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };

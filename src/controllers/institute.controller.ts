@@ -1,15 +1,15 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../config/db';
+import AppError from '../utils/AppError';
 
 // Create Institute
-export const createInstitute = async (req: Request, res: Response): Promise<void> => {
+export const createInstitute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { name, address, contact, email } = req.body;
   const created_by = (req as any).user.id;
 
   try {
     if (!name) {
-      res.status(400).json({ success: false, message: 'Institute name is required' });
-      return;
+       throw new AppError('Institute name is required', 400);
     }
 
     const result = await pool.query(
@@ -25,13 +25,12 @@ export const createInstitute = async (req: Request, res: Response): Promise<void
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
 // Get All Institutes
-export const getInstitutes = async (req: Request, res: Response): Promise<void> => {
+export const getInstitutes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const result = await pool.query(
       `SELECT i.*, u.name as created_by_name
@@ -45,13 +44,12 @@ export const getInstitutes = async (req: Request, res: Response): Promise<void> 
       data: result.rows
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
 // Get Single Institute
-export const getInstituteById = async (req: Request, res: Response): Promise<void> => {
+export const getInstituteById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -70,13 +68,12 @@ export const getInstituteById = async (req: Request, res: Response): Promise<voi
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
 // Update Institute
-export const updateInstitute = async (req: Request, res: Response): Promise<void> => {
+export const updateInstitute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
   const { name, address, contact, email } = req.body;
 
@@ -103,13 +100,12 @@ export const updateInstitute = async (req: Request, res: Response): Promise<void
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };
 
 // Delete Institute
-export const deleteInstitute = async (req: Request, res: Response): Promise<void> => {
+export const deleteInstitute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -125,7 +121,6 @@ export const deleteInstitute = async (req: Request, res: Response): Promise<void
 
     res.json({ success: true, message: 'Institute deleted successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error);
   }
 };

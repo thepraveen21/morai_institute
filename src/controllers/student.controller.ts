@@ -1,43 +1,28 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
 import pool from '../config/db';
+import AppError from '../utils/AppError'; // CHANGED: Added AppError import
 
-// Create Student
-export const createStudent = async (req: Request, res: Response): Promise<void> => {
-  const {
-    institute_id,
-    name,
-    date_of_birth,
-    grade,
-    parent_name,
-    parent_contact,
-    parent_email,
-    address
-  } = req.body;
+export const createStudent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
+  const { institute_id, name, date_of_birth, grade, parent_name, parent_contact, parent_email, address } = req.body;
 
   try {
     if (!institute_id || !name) {
-      res.status(400).json({
-        success: false,
-        message: 'institute_id and name are required'
-      });
-      return;
+      throw new AppError('institute_id and name are required', 400); // CHANGED: throw AppError
     }
 
-    // Check institute exists
-    const institute = await pool.query(
-      'SELECT id FROM institutes WHERE id = $1',
-      [institute_id]
-    );
+    const institute = await pool.query('SELECT id FROM institutes WHERE id = $1', [institute_id]);
     if (institute.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Institute not found' });
-      return;
+      throw new AppError('Institute not found', 404); // CHANGED: throw AppError
     }
 
     const result = await pool.query(
       `INSERT INTO students
         (institute_id, name, date_of_birth, grade, parent_name, parent_contact, parent_email, address)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [institute_id, name, date_of_birth || null, grade, parent_name, parent_contact, parent_email, address]
     );
 
@@ -47,13 +32,15 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Get All Students (filter by institute)
-export const getStudents = async (req: Request, res: Response): Promise<void> => {
+export const getStudents = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { institute_id } = req.query;
 
   try {
@@ -72,24 +59,20 @@ export const getStudents = async (req: Request, res: Response): Promise<void> =>
     query += ' ORDER BY s.created_at DESC';
 
     const result = await pool.query(query, params);
-
-    res.json({
-      success: true,
-      count: result.rows.length,
-      data: result.rows
-    });
+    res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Get Single Student with enrolled classes
-export const getStudentById = async (req: Request, res: Response): Promise<void> => {
+export const getStudentById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
 
   try {
-    // Get student
     const studentResult = await pool.query(
       `SELECT s.*, i.name as institute_name
        FROM students s
@@ -99,11 +82,9 @@ export const getStudentById = async (req: Request, res: Response): Promise<void>
     );
 
     if (studentResult.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Student not found' });
-      return;
+      throw new AppError('Student not found', 404); // CHANGED: throw AppError
     }
 
-    // Get enrolled classes
     const classesResult = await pool.query(
       `SELECT c.id, c.name, c.subject, c.fee_amount, c.schedule, e.enrolled_at
        FROM enrollments e
@@ -120,23 +101,17 @@ export const getStudentById = async (req: Request, res: Response): Promise<void>
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Update Student
-export const updateStudent = async (req: Request, res: Response): Promise<void> => {
+export const updateStudent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
-  const {
-    name,
-    date_of_birth,
-    grade,
-    parent_name,
-    parent_contact,
-    parent_email,
-    address
-  } = req.body;
+  const { name, date_of_birth, grade, parent_name, parent_contact, parent_email, address } = req.body;
 
   try {
     const result = await pool.query(
@@ -154,8 +129,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Student not found' });
-      return;
+      throw new AppError('Student not found', 404); // CHANGED: throw AppError
     }
 
     res.json({
@@ -164,13 +138,15 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       data: result.rows[0]
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Delete Student
-export const deleteStudent = async (req: Request, res: Response): Promise<void> => {
+export const deleteStudent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -180,48 +156,39 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Student not found' });
-      return;
+      throw new AppError('Student not found', 404); // CHANGED: throw AppError
     }
 
     res.json({ success: true, message: 'Student deleted successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Enroll Student into a Class
-export const enrollStudent = async (req: Request, res: Response): Promise<void> => {
+export const enrollStudent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { student_id, class_id } = req.body;
 
   try {
     if (!student_id || !class_id) {
-      res.status(400).json({
-        success: false,
-        message: 'student_id and class_id are required'
-      });
-      return;
+      throw new AppError('student_id and class_id are required', 400); // CHANGED: throw AppError
     }
 
-    // Check student exists
     const student = await pool.query('SELECT id FROM students WHERE id = $1', [student_id]);
     if (student.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Student not found' });
-      return;
+      throw new AppError('Student not found', 404); // CHANGED: throw AppError
     }
 
-    // Check class exists
     const classCheck = await pool.query('SELECT id FROM classes WHERE id = $1', [class_id]);
     if (classCheck.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Class not found' });
-      return;
+      throw new AppError('Class not found', 404); // CHANGED: throw AppError
     }
 
     const result = await pool.query(
-      `INSERT INTO enrollments (student_id, class_id)
-       VALUES ($1, $2)
-       RETURNING *`,
+      'INSERT INTO enrollments (student_id, class_id) VALUES ($1, $2) RETURNING *',
       [student_id, class_id]
     );
 
@@ -230,40 +197,30 @@ export const enrollStudent = async (req: Request, res: Response): Promise<void> 
       message: 'Student enrolled successfully',
       data: result.rows[0]
     });
-  } catch (error: any) {
-    // Handle duplicate enrollment
-    if (error.code === '23505') {
-      res.status(400).json({
-        success: false,
-        message: 'Student is already enrolled in this class'
-      });
-      return;
-    }
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    next(error); // CHANGED: pass error to global handler
   }
 };
 
-// Remove Student from a Class
-export const unenrollStudent = async (req: Request, res: Response): Promise<void> => {
+export const unenrollStudent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction // CHANGED: Added next parameter
+): Promise<void> => {
   const { student_id, class_id } = req.body;
 
   try {
     const result = await pool.query(
-      `DELETE FROM enrollments
-       WHERE student_id = $1 AND class_id = $2
-       RETURNING id`,
+      'DELETE FROM enrollments WHERE student_id = $1 AND class_id = $2 RETURNING id',
       [student_id, class_id]
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ success: false, message: 'Enrollment not found' });
-      return;
+      throw new AppError('Enrollment not found', 404); // CHANGED: throw AppError
     }
 
     res.json({ success: true, message: 'Student unenrolled successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    next(error); // CHANGED: pass error to global handler
   }
 };

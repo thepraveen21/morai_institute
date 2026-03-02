@@ -11,6 +11,7 @@ import announcementRoutes from './routes/announcement.routes';
 import reportRoutes from './routes/report.routes';
 import teacherRoutes from './routes/teacher.routes';
 import portalRoutes from './routes/portal.routes';
+import errorMiddleware from './middleware/error.middleware';
 
 
 dotenv.config();
@@ -44,3 +45,14 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// 404 Handler — unknown routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Global error handler — MUST be last
+app.use(errorMiddleware);
