@@ -15,7 +15,7 @@ Built with Node.js, Express, TypeScript, and PostgreSQL (Supabase).
 
 ### 1. Clone the repository
 git clone https://github.com/thepraveen21/morai_institute.git 
-cd morai-institute-backend
+cd morai-institute
 
 ### 2. Install dependencies
 npm install
