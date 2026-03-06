@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError';
 
 export const getMyClasses = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const teacher_id = (req as any).user.id;
 
@@ -29,14 +29,14 @@ export const getMyClasses = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyClassById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const teacher_id = (req as any).user.id;
   const { id } = req.params;
@@ -51,7 +51,7 @@ export const getMyClassById = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Class not found or not assigned to you', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found or not assigned to you', 404); 
     }
 
     const studentsResult = await pool.query(
@@ -72,14 +72,14 @@ export const getMyClassById = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyClassAttendance = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const teacher_id = (req as any).user.id;
   const { id } = req.params;
@@ -91,7 +91,7 @@ export const getMyClassAttendance = async (
     );
 
     if (classCheck.rows.length === 0) {
-      throw new AppError('Class not found or not assigned to you', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found or not assigned to you', 404); 
     }
 
     const sessionsResult = await pool.query(
@@ -129,14 +129,14 @@ export const getMyClassAttendance = async (
 
     res.json({ success: true, total_sessions: totalSessions, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyClassSessions = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const teacher_id = (req as any).user.id;
   const { id } = req.params;
@@ -148,7 +148,7 @@ export const getMyClassSessions = async (
     );
 
     if (classCheck.rows.length === 0) {
-      throw new AppError('Class not found or not assigned to you', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found or not assigned to you', 404); 
     }
 
     const result = await pool.query(
@@ -164,14 +164,14 @@ export const getMyClassSessions = async (
 
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getTeacherDashboard = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const teacher_id = (req as any).user.id;
 
@@ -218,6 +218,6 @@ export const getTeacherDashboard = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 
 export const getPortalDashboard = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const user_id = (req as any).user.id;
 
@@ -19,7 +19,7 @@ export const getPortalDashboard = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('No student profile found for this account', 404); // CHANGED: throw AppError
+      throw new AppError('No student profile found for this account', 404); 
     }
 
     const student = studentResult.rows[0];
@@ -64,14 +64,14 @@ export const getPortalDashboard = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyFees = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const user_id = (req as any).user.id;
 
@@ -82,7 +82,7 @@ export const getMyFees = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student profile not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student profile not found', 404); 
     }
 
     const student_id = studentResult.rows[0].id;
@@ -100,14 +100,14 @@ export const getMyFees = async (
 
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyAttendance = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const user_id = (req as any).user.id;
   const { class_id } = req.query;
@@ -119,7 +119,7 @@ export const getMyAttendance = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student profile not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student profile not found', 404); 
     }
 
     const student_id = studentResult.rows[0].id;
@@ -157,21 +157,21 @@ export const getMyAttendance = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const uploadMyProof = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const user_id = (req as any).user.id;
   const { fee_id, proof_url } = req.body;
 
   try {
     if (!fee_id || !proof_url) {
-      throw new AppError('fee_id and proof_url are required', 400); // CHANGED: throw AppError
+      throw new AppError('fee_id and proof_url are required', 400); 
     }
 
     const studentResult = await pool.query(
@@ -180,7 +180,7 @@ export const uploadMyProof = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student profile not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student profile not found', 404); 
     }
 
     const student_id = studentResult.rows[0].id;
@@ -191,7 +191,7 @@ export const uploadMyProof = async (
     );
 
     if (feeCheck.rows.length === 0) {
-      throw new AppError('This fee record does not belong to you', 403); // CHANGED: throw AppError
+      throw new AppError('This fee record does not belong to you', 403); 
     }
 
     const result = await pool.query(
@@ -205,14 +205,14 @@ export const uploadMyProof = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyAnnouncements = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const user_id = (req as any).user.id;
 
@@ -223,7 +223,7 @@ export const getMyAnnouncements = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student profile not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student profile not found', 404); 
     }
 
     const student_id = studentResult.rows[0].id;
@@ -242,14 +242,14 @@ export const getMyAnnouncements = async (
 
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getMyReceipt = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const user_id = (req as any).user.id;
   const { fee_id } = req.params;
@@ -261,7 +261,7 @@ export const getMyReceipt = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student profile not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student profile not found', 404); 
     }
 
     const student_id = studentResult.rows[0].id;
@@ -280,7 +280,7 @@ export const getMyReceipt = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Receipt not found or does not belong to you', 404); // CHANGED: throw AppError
+      throw new AppError('Receipt not found or does not belong to you', 404); 
     }
 
     const fee = result.rows[0];
@@ -295,6 +295,6 @@ export const getMyReceipt = async (
 
     res.json({ success: true, data: receipt });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

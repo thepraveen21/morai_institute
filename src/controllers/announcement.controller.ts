@@ -1,24 +1,24 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express';
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 import { sendSMS } from '../services/sms.service';
 
 export const createAnnouncement = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, title, body } = req.body;
   const posted_by = (req as any).user.id;
 
   try {
     if (!class_id || !title || !body) {
-      throw new AppError('class_id, title and body are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id, title and body are required', 400); 
     }
 
     const classCheck = await pool.query('SELECT id FROM classes WHERE id = $1', [class_id]);
     if (classCheck.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     const result = await pool.query(
@@ -32,14 +32,14 @@ export const createAnnouncement = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getAnnouncements = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id } = req.query;
 
@@ -62,14 +62,14 @@ export const getAnnouncements = async (
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getAnnouncementById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -84,19 +84,19 @@ export const getAnnouncementById = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Announcement not found', 404); // CHANGED: throw AppError
+      throw new AppError('Announcement not found', 404); 
     }
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const updateAnnouncement = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
   const { title, body } = req.body;
@@ -112,7 +112,7 @@ export const updateAnnouncement = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Announcement not found', 404); // CHANGED: throw AppError
+      throw new AppError('Announcement not found', 404); 
     }
 
     res.json({
@@ -121,14 +121,14 @@ export const updateAnnouncement = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const deleteAnnouncement = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -139,25 +139,25 @@ export const deleteAnnouncement = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Announcement not found', 404); // CHANGED: throw AppError
+      throw new AppError('Announcement not found', 404); 
     }
 
     res.json({ success: true, message: 'Announcement deleted successfully' });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const sendFeeReminders = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, month, year } = req.body;
 
   try {
     if (!class_id || !month || !year) {
-      throw new AppError('class_id, month and year are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id, month and year are required', 400); 
     }
 
     const unpaidResult = await pool.query(
@@ -193,20 +193,20 @@ export const sendFeeReminders = async (
       data: results
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error);
   }
 };
 
 export const sendCustomSMS = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, message } = req.body;
 
   try {
     if (!class_id || !message) {
-      throw new AppError('class_id and message are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id and message are required', 400); 
     }
 
     const contacts = await pool.query(
@@ -236,6 +236,6 @@ export const sendCustomSMS = async (
       data: results
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

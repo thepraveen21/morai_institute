@@ -1,22 +1,21 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
-
+import AppError from '../utils/AppError'; 
 export const createStudent = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction // 
 ): Promise<void> => {
   const { institute_id, name, date_of_birth, grade, parent_name, parent_contact, parent_email, address } = req.body;
 
   try {
     if (!institute_id || !name) {
-      throw new AppError('institute_id and name are required', 400); // CHANGED: throw AppError
+      throw new AppError('institute_id and name are required', 400); 
     }
 
     const institute = await pool.query('SELECT id FROM institutes WHERE id = $1', [institute_id]);
     if (institute.rows.length === 0) {
-      throw new AppError('Institute not found', 404); // CHANGED: throw AppError
+      throw new AppError('Institute not found', 404); 
     }
 
     const result = await pool.query(
@@ -32,14 +31,14 @@ export const createStudent = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getStudents = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { institute_id } = req.query;
 
@@ -61,14 +60,14 @@ export const getStudents = async (
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getStudentById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -82,7 +81,7 @@ export const getStudentById = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student not found', 404); 
     }
 
     const classesResult = await pool.query(
@@ -101,14 +100,14 @@ export const getStudentById = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const updateStudent = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
   const { name, date_of_birth, grade, parent_name, parent_contact, parent_email, address } = req.body;
@@ -129,7 +128,7 @@ export const updateStudent = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Student not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student not found', 404); 
     }
 
     res.json({
@@ -138,14 +137,14 @@ export const updateStudent = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const deleteStudent = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -156,35 +155,35 @@ export const deleteStudent = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Student not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student not found', 404); 
     }
 
     res.json({ success: true, message: 'Student deleted successfully' });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const enrollStudent = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { student_id, class_id } = req.body;
 
   try {
     if (!student_id || !class_id) {
-      throw new AppError('student_id and class_id are required', 400); // CHANGED: throw AppError
+      throw new AppError('student_id and class_id are required', 400); 
     }
 
     const student = await pool.query('SELECT id FROM students WHERE id = $1', [student_id]);
     if (student.rows.length === 0) {
-      throw new AppError('Student not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student not found', 404); 
     }
 
     const classCheck = await pool.query('SELECT id FROM classes WHERE id = $1', [class_id]);
     if (classCheck.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     const result = await pool.query(
@@ -198,14 +197,14 @@ export const enrollStudent = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const unenrollStudent = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { student_id, class_id } = req.body;
 
@@ -216,11 +215,11 @@ export const unenrollStudent = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Enrollment not found', 404); // CHANGED: throw AppError
+      throw new AppError('Enrollment not found', 404); 
     }
 
     res.json({ success: true, message: 'Student unenrolled successfully' });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

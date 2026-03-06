@@ -1,17 +1,17 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 
 export const unpaidFeeReport = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, month, year } = req.query;
 
   try {
     if (!class_id || !month || !year) {
-      throw new AppError('class_id, month and year are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id, month and year are required', 400); 
     }
 
     const result = await pool.query(
@@ -36,20 +36,20 @@ export const unpaidFeeReport = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const feeCollectionSummary = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, month, year } = req.query;
 
   try {
     if (!class_id || !month || !year) {
-      throw new AppError('class_id, month and year are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id, month and year are required', 400); 
     }
 
     const result = await pool.query(
@@ -72,20 +72,20 @@ export const feeCollectionSummary = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const attendanceSummaryReport = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, month, year } = req.query;
 
   try {
     if (!class_id) {
-      throw new AppError('class_id is required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id is required', 400); 
     }
 
     let sessionQuery = `SELECT id FROM attendance_sessions WHERE class_id = $1`;
@@ -121,21 +121,21 @@ export const attendanceSummaryReport = async (
 
     res.json({ success: true, report: 'Attendance Summary', total_sessions: sessionIds.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const chronicAbsenteeReport = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, threshold } = req.query;
   const absenceThreshold = parseInt(threshold as string) || 50;
 
   try {
     if (!class_id) {
-      throw new AppError('class_id is required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id is required', 400); 
     }
 
     const sessions = await pool.query(
@@ -175,14 +175,14 @@ export const chronicAbsenteeReport = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const studentFullReport = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { student_id } = req.params;
 
@@ -196,7 +196,7 @@ export const studentFullReport = async (
     );
 
     if (studentResult.rows.length === 0) {
-      throw new AppError('Student not found', 404); // CHANGED: throw AppError
+      throw new AppError('Student not found', 404); 
     }
 
     const feeResult = await pool.query(
@@ -232,20 +232,20 @@ export const studentFullReport = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const dashboardSummary = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const { institute_id } = req.query;
 
   try {
     if (!institute_id) {
-      throw new AppError('institute_id is required', 400); // CHANGED: throw AppError
+      throw new AppError('institute_id is required', 400); 
     }
 
     const studentsResult = await pool.query(
@@ -296,6 +296,6 @@ export const dashboardSummary = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

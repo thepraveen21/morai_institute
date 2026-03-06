@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import rateLimit from 'express-rate-limit';
+
 
 import authRoutes from './routes/auth.routes';
 import instituteRoutes from './routes/institute.routes';

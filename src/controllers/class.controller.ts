@@ -1,22 +1,22 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 
 export const createClass = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { institute_id, teacher_id, name, subject, schedule, fee_amount } = req.body;
 
   try {
     if (!institute_id || !name || !fee_amount) {
-      throw new AppError('institute_id, name and fee_amount are required', 400); // CHANGED: throw AppError
+      throw new AppError('institute_id, name and fee_amount are required', 400); 
     }
 
     const institute = await pool.query('SELECT id FROM institutes WHERE id = $1', [institute_id]);
     if (institute.rows.length === 0) {
-      throw new AppError('Institute not found', 404); // CHANGED: throw AppError
+      throw new AppError('Institute not found', 404); 
     }
 
     const result = await pool.query(
@@ -31,14 +31,14 @@ export const createClass = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getClasses = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const { institute_id } = req.query;
 
@@ -63,14 +63,14 @@ export const getClasses = async (
     const result = await pool.query(query, params);
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getClassById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -87,19 +87,19 @@ export const getClassById = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const updateClass = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
   const { teacher_id, name, subject, schedule, fee_amount } = req.body;
@@ -118,7 +118,7 @@ export const updateClass = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     res.json({
@@ -127,14 +127,14 @@ export const updateClass = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const deleteClass = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -145,11 +145,11 @@ export const deleteClass = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     res.json({ success: true, message: 'Class deleted successfully' });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

@@ -1,17 +1,17 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 
 export const createFee = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const { student_id, class_id, month, year, amount } = req.body;
 
   try {
     if (!student_id || !class_id || !month || !year || !amount) {
-      throw new AppError('student_id, class_id, month, year and amount are required', 400); // CHANGED: throw AppError
+      throw new AppError('student_id, class_id, month, year and amount are required', 400);
     }
 
     const enrollment = await pool.query(
@@ -19,7 +19,7 @@ export const createFee = async (
       [student_id, class_id]
     );
     if (enrollment.rows.length === 0) {
-      throw new AppError('Student is not enrolled in this class', 400); // CHANGED: throw AppError
+      throw new AppError('Student is not enrolled in this class', 400);
     }
 
     const result = await pool.query(
@@ -34,14 +34,14 @@ export const createFee = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getFees = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { student_id, class_id, month, year, status } = req.query;
 
@@ -70,14 +70,14 @@ export const getFees = async (
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getFeeById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -95,26 +95,26 @@ export const getFeeById = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
+      throw new AppError('Fee record not found', 404); 
     }
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const updateFeeStatus = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
   const { status, amount, notes } = req.body;
 
   try {
     if (!status) {
-      throw new AppError('status is required', 400); // CHANGED: throw AppError
+      throw new AppError('status is required', 400); 
     }
 
     const paid_at = status === 'paid' ? new Date() : null;
@@ -131,7 +131,7 @@ export const updateFeeStatus = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
+      throw new AppError('Fee record not found', 404); 
     }
 
     res.json({
@@ -140,21 +140,21 @@ export const updateFeeStatus = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const uploadProof = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
   const { proof_url } = req.body;
 
   try {
     if (!proof_url) {
-      throw new AppError('proof_url is required', 400); // CHANGED: throw AppError
+      throw new AppError('proof_url is required', 400); 
     }
 
     const result = await pool.query(
@@ -163,7 +163,7 @@ export const uploadProof = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
+      throw new AppError('Fee record not found', 404);
     }
 
     res.json({
@@ -172,14 +172,14 @@ export const uploadProof = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getReceipt = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -198,7 +198,7 @@ export const getReceipt = async (
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Fee record not found', 404); // CHANGED: throw AppError
+      throw new AppError('Fee record not found', 404); 
     }
 
     const fee = result.rows[0];
@@ -213,20 +213,20 @@ export const getReceipt = async (
 
     res.json({ success: true, data: receipt });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getUnpaidSummary = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, month, year } = req.query;
 
   try {
     if (!class_id || !month || !year) {
-      throw new AppError('class_id, month and year are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id, month and year are required', 400); 
     }
 
     const result = await pool.query(
@@ -245,6 +245,6 @@ export const getUnpaidSummary = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

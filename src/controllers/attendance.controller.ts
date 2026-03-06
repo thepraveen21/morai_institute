@@ -1,25 +1,25 @@
-import { Request, Response, NextFunction } from 'express'; // CHANGED: Added NextFunction
+import { Request, Response, NextFunction } from 'express'; 
 import pool from '../config/db';
-import AppError from '../utils/AppError'; // CHANGED: Added AppError import
+import AppError from '../utils/AppError'; 
 import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 
 export const createSession = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id, date } = req.body;
   const created_by = (req as any).user.id;
 
   try {
     if (!class_id || !date) {
-      throw new AppError('class_id and date are required', 400); // CHANGED: throw AppError
+      throw new AppError('class_id and date are required', 400); 
     }
 
     const classCheck = await pool.query('SELECT id FROM classes WHERE id = $1', [class_id]);
     if (classCheck.rows.length === 0) {
-      throw new AppError('Class not found', 404); // CHANGED: throw AppError
+      throw new AppError('Class not found', 404); 
     }
 
     const qr_expires_at = new Date();
@@ -40,14 +40,14 @@ export const createSession = async (
       data: { ...result.rows[0], qr_image: qr_code }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getSessions = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { class_id } = req.query;
 
@@ -70,14 +70,14 @@ export const getSessions = async (
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rows.length, data: result.rows });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error);
   }
 };
 
 export const getSessionById = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction
 ): Promise<void> => {
   const { id } = req.params;
 
@@ -91,7 +91,7 @@ export const getSessionById = async (
     );
 
     if (sessionResult.rows.length === 0) {
-      throw new AppError('Session not found', 404); // CHANGED: throw AppError
+      throw new AppError('Session not found', 404);
     }
 
     const attendanceResult = await pool.query(
@@ -112,20 +112,20 @@ export const getSessionById = async (
       }
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const scanQR = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { qr_token, student_id } = req.body;
 
   try {
     if (!qr_token || !student_id) {
-      throw new AppError('qr_token and student_id are required', 400); // CHANGED: throw AppError
+      throw new AppError('qr_token and student_id are required', 400); 
     }
 
     const sessionResult = await pool.query(
@@ -134,13 +134,13 @@ export const scanQR = async (
     );
 
     if (sessionResult.rows.length === 0) {
-      throw new AppError('Invalid QR code', 404); // CHANGED: throw AppError
+      throw new AppError('Invalid QR code', 404); 
     }
 
     const session = sessionResult.rows[0];
 
     if (new Date() > new Date(session.qr_expires_at)) {
-      throw new AppError('QR code has expired', 400); // CHANGED: throw AppError
+      throw new AppError('QR code has expired', 400); 
     }
 
     const enrollment = await pool.query(
@@ -149,7 +149,7 @@ export const scanQR = async (
     );
 
     if (enrollment.rows.length === 0) {
-      throw new AppError('Student is not enrolled in this class', 400); // CHANGED: throw AppError
+      throw new AppError('Student is not enrolled in this class', 400); 
     }
 
     const result = await pool.query(
@@ -164,20 +164,20 @@ export const scanQR = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const markManual = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { session_id, student_id } = req.body;
 
   try {
     if (!session_id || !student_id) {
-      throw new AppError('session_id and student_id are required', 400); // CHANGED: throw AppError
+      throw new AppError('session_id and student_id are required', 400);
     }
 
     const session = await pool.query(
@@ -186,7 +186,7 @@ export const markManual = async (
     );
 
     if (session.rows.length === 0) {
-      throw new AppError('Session not found', 404); // CHANGED: throw AppError
+      throw new AppError('Session not found', 404); 
     }
 
     const result = await pool.query(
@@ -201,14 +201,14 @@ export const markManual = async (
       data: result.rows[0]
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error);
   }
 };
 
 export const getAbsentList = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { session_id } = req.params;
 
@@ -219,7 +219,7 @@ export const getAbsentList = async (
     );
 
     if (session.rows.length === 0) {
-      throw new AppError('Session not found', 404); // CHANGED: throw AppError
+      throw new AppError('Session not found', 404); 
     }
 
     const class_id = session.rows[0].class_id;
@@ -241,14 +241,14 @@ export const getAbsentList = async (
       data: result.rows
     });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };
 
 export const getStudentAttendanceSummary = async (
   req: Request,
   res: Response,
-  next: NextFunction // CHANGED: Added next parameter
+  next: NextFunction 
 ): Promise<void> => {
   const { student_id } = req.params;
   const { class_id } = req.query;
@@ -274,6 +274,6 @@ export const getStudentAttendanceSummary = async (
     const result = await pool.query(query, params);
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    next(error); // CHANGED: pass error to global handler
+    next(error); 
   }
 };

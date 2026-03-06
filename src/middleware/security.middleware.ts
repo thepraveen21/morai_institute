@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit'; // CHANGED: default import for v6
+import rateLimit from 'express-rate-limit'; 
 
 // General rate limit — all routes
 export const generalLimiter = rateLimit({
@@ -6,7 +6,7 @@ export const generalLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {       // CHANGED: use handler instead of message
+  handler: (req, res) => {       
     res.status(429).json({
       success: false,
       message: 'Too many requests — please try again after 10 minutes'
@@ -17,10 +17,10 @@ export const generalLimiter = rateLimit({
 // Strict limit — login and register only
 export const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 10,                        // CHANGED: set to 3 for easy testing first
+  max: 10,                       
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {       // CHANGED: use handler instead of message
+  handler: (req, res) => {      
     res.status(429).json({
       success: false,
       message: 'Too many login attempts — please try again after 10 minutes'
@@ -34,7 +34,7 @@ export const smsLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {       // CHANGED: use handler instead of message
+  handler: (req, res) => {       
     res.status(429).json({
       success: false,
       message: 'Too many SMS requests — please try again after 30 minutes'
