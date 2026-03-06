@@ -11,6 +11,7 @@ import {
   sendReminderSchema,
   sendCustomSMSSchema
 } from '../validations/announcement.validation';
+import { smsLimiter } from '../middleware/security.middleware';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.get('/', getAnnouncements);
 router.get('/:id', getAnnouncementById);
 router.put('/:id', restrictTo('admin', 'teacher'), updateAnnouncement);
 router.delete('/:id', restrictTo('admin'), deleteAnnouncement);
-router.post('/sms/fee-reminders', restrictTo('admin'), validate(sendReminderSchema), sendFeeReminders);
-router.post('/sms/custom', restrictTo('admin'), validate(sendCustomSMSSchema), sendCustomSMS);
+router.post('/sms/fee-reminders', restrictTo('admin'), smsLimiter, validate(sendReminderSchema), sendFeeReminders); 
+router.post('/sms/custom', restrictTo('admin'), smsLimiter, validate(sendCustomSMSSchema), sendCustomSMS);           
 
 export default router;
