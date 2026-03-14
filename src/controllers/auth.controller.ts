@@ -5,27 +5,54 @@ import pool from '../config/db';
 import AppError from '../utils/AppError';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { email, password, role, name } = req.body;
+  const { name, email, password, registration_code } = req.body; // CHANGED: role → registration_code
 
   try {
-    // Check if user exists
+    // CHANGED: Validate registration code first (new block)
+    const codeResult = await pool.query(
+      `SELECT * FROM registration_codes WHERE code = $1 AND status = 'unused'`,
+      [registration_code]
+    );
+    if (codeResult.rows.length === 0) {
+      throw new AppError('Invalid or already used registration code', 400);
+    }
+    const codeRecord = codeResult.rows[0];
+    // END OF NEW BLOCK
+
+    // Check if user exists — unchanged
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
-       throw new AppError('Email already registered', 400);
+      throw new AppError('Email already registered', 400);
     }
 
-    // Hash password
+    // Hash password — unchanged
     const password_hash = await bcrypt.hash(password, 12);
 
-    // Insert user
+    // Insert user — CHANGED: role now comes from codeRecord.role not user input
     const result = await pool.query(
       'INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4) RETURNING id, email, role, name',
-      [email, password_hash, role || 'student', name]
+      [email, password_hash, codeRecord.role, name] // CHANGED: role || 'student' → codeRecord.role
     );
 
     const user = result.rows[0];
 
-    // Generate token
+    // CHANGED: Mark code as used (new block)
+    await pool.query(
+      `UPDATE registration_codes SET status = 'used', used_by = $1, used_at = NOW() WHERE code = $2`,
+      [user.id, registration_code]
+    );
+    // END OF NEW BLOCK
+
+    // CHANGED: Auto create student profile if role is student (new block)
+    if (codeRecord.role === 'student') {
+      await pool.query(
+        `INSERT INTO students (institute_id, name, user_id) VALUES ($1, $2, $3)`,
+        [codeRecord.institute_id, name, user.id]
+      );
+    }
+    // END OF NEW BLOCK
+
+    // Generate token — unchanged
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET as string,
@@ -34,7 +61,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: `${codeRecord.role} account created successfully`, // CHANGED: message now shows role
       data: { user, token }
     });
   } catch (error) {
@@ -42,6 +69,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
+// login — completely unchanged ✅
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
 
@@ -77,6 +105,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
   }
 };
 
+// getMe — completely unchanged ✅
 export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const result = await pool.query(

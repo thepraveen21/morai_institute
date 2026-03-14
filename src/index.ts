@@ -16,6 +16,7 @@ import teacherRoutes from './routes/teacher.routes';
 import portalRoutes from './routes/portal.routes';
 import errorMiddleware from './middleware/error.middleware';
 import { generalLimiter } from './middleware/security.middleware';
+import regcodeRoutes from './routes/regcode.routes';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/portal', portalRoutes);
+app.use('/api/codes', regcodeRoutes);
 
 // ── 404 Handler ───────────────────────────
 app.use((req, res) => {

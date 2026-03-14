@@ -106,3 +106,7 @@ Built with Node.js, Express, TypeScript, and PostgreSQL (Supabase).
 - GET    /api/portal/announcements
 - POST   /api/portal/fees/proof
 - GET    /api/portal/fees/:fee_id/receipt
+
+### Registration Codes Generate 
+- POST /api/codes/generate
+- GET /api/codes?status=used
