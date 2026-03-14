@@ -5,10 +5,10 @@ import pool from '../config/db';
 import AppError from '../utils/AppError';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { name, email, password, registration_code } = req.body; // CHANGED: role → registration_code
+  const { name, email, password, registration_code } = req.body; // role → registration_code
 
   try {
-    // CHANGED: Validate registration code first (new block)
+    // Validate registration code first (new block)
     const codeResult = await pool.query(
       `SELECT * FROM registration_codes WHERE code = $1 AND status = 'unused'`,
       [registration_code]
@@ -69,7 +69,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
-// login — completely unchanged ✅
+// login — completely unchanged 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
 
@@ -105,7 +105,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
   }
 };
 
-// getMe — completely unchanged ✅
+// getMe — completely unchanged 
 export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const result = await pool.query(

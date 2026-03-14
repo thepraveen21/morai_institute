@@ -9,7 +9,7 @@ export const registerSchema = z.object({
       .email('Invalid email address'),
     password: z.string()
       .min(6, 'Password must be at least 6 characters'),
-    registration_code: z.string()  // CHANGED: removed role, added registration_code
+    registration_code: z.string()  // removed role, added registration_code
       .min(1, 'Registration code is required')
   })
 });
